@@ -171,6 +171,13 @@ public class LatinIME extends InputMethodService implements
         }
     };
 
+    private final BroadcastReceiver mWallpaperChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mKeyboardSwitcher.setThemeNeedsReload();
+        }
+    };
+
     final static class RestartAfterDeviceUnlockReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -593,6 +600,9 @@ public class LatinIME extends InputMethodService implements
         emojiSearchFilter.addAction(EmojiSearchActivity.EMOJI_SEARCH_DONE_ACTION);
         ContextCompat.registerReceiver(this, mEmojiSearchReceiver, emojiSearchFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
 
+        final IntentFilter wallpaperChangeFilter = new IntentFilter(Intent.ACTION_WALLPAPER_CHANGED);
+        registerReceiver(mWallpaperChangeReceiver, wallpaperChangeFilter);
+
         StatsUtils.onCreate(mSettings.getCurrent(), mRichImm);
     }
 
@@ -715,6 +725,7 @@ public class LatinIME extends InputMethodService implements
         unregisterReceiver(mDictionaryDumpBroadcastReceiver);
         unregisterReceiver(mRestartAfterDeviceUnlockReceiver);
         unregisterReceiver(mEmojiSearchReceiver);
+        unregisterReceiver(mWallpaperChangeReceiver);
         mStatsUtilsManager.onDestroy(this /* context */);
         super.onDestroy();
         mHandler.removeCallbacksAndMessages(null);
