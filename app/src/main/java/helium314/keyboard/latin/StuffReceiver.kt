@@ -63,6 +63,15 @@ class StuffReceiver(latinIME: LatinIME) {
         }
     }
 
+    // Refresh the Material You palette after an Android wallpaper change.
+    // Only registered while the IME service is alive; no extra permission is needed.
+    private val wallpaperChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Intent.ACTION_WALLPAPER_CHANGED)
+                KeyboardSwitcher.getInstance().setThemeNeedsReload()
+        }
+    }
+
     private var appsReceiver: BroadcastReceiver? = null
     private var foldableObserver: FoldableObserver? = null
     private var personalDictObserver: ContentObserver? = null
@@ -77,6 +86,8 @@ class StuffReceiver(latinIME: LatinIME) {
         ContextCompat.registerReceiver(context, dictionaryChangeReceiver, dictFilter, ContextCompat.RECEIVER_EXPORTED)
 
         ContextCompat.registerReceiver(context, emojiSearchReceiver, IntentFilter(EmojiSearchActivity.EMOJI_SEARCH_DONE_ACTION), ContextCompat.RECEIVER_NOT_EXPORTED)
+
+        context.registerReceiver(wallpaperChangeReceiver, IntentFilter(Intent.ACTION_WALLPAPER_CHANGED))
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             context.registerReceiver(restartAfterDeviceUnlockReceiver, IntentFilter(Intent.ACTION_USER_UNLOCKED))
@@ -95,6 +106,7 @@ class StuffReceiver(latinIME: LatinIME) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             context.unregisterReceiver(restartAfterDeviceUnlockReceiver)
         context.unregisterReceiver(emojiSearchReceiver)
+        context.unregisterReceiver(wallpaperChangeReceiver)
         unregisterAppsReceiver(context)
         unregisterPersonalDictObserver(context)
         unregisterContactsObserver(context)
